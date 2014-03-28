@@ -4,9 +4,9 @@
 
 
 import numpy as np
-#import scipy
 import matplotlib.pyplot as plt
 from astropy.table import Table
+import scipy
 
 
 # Due to a bug in astropy.table (see :
@@ -36,9 +36,13 @@ print "There are "+ str(len(t_noduplicates))+" elements when low SNR duplicates 
 
 
 plt.hist(t['stell'], bins = 10)
+#plt.show()
+
+plt.hist(t['Stellar_Flag'], bins = 10)
+#plt.show()
+
+plt.plot(t['stell'], t['Stellar_Flag'])
 plt.show()
-
-
 
 #x = np.genfromtxt(catalog_filename, dtype=['i8','i'])#, comments='#')#, names=True)
 
