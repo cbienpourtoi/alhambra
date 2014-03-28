@@ -10,12 +10,13 @@ import scipy
 from matplotlib.colors import LogNorm
 
 plot_extension = ".png"
-plot_directory = "plots/"
+plot_directory = "../plots/"
 def savemyplot(name):
 	fig.savefig(plot_directory+name+plot_extension)
 	return
 
 
+catalogs_directory = '../data/catalogs/'
 
 
 # Due to a bug in astropy.table (see :
@@ -24,8 +25,8 @@ def savemyplot(name):
 # https://github.com/astropy/astropy/pull/2234 )
 # I truncate the first line of my catalogs until the bug is corrected.
 # Truncated catalog name has a "MYVERSION." prefix.
-catalog_filename = '/home/loic/data/alhambra/catalogs/MYVERSION.alhambra.F02P01C01.ColorProBPZ.cat'
-#catalog_filename = '/home/loic/data/alhambra/catalogs/alhambra.F02P01C01.ColorProBPZ.cat'
+catalog_filename = catalogs_directory+'MYVERSION.alhambra.F02P01C01.ColorProBPZ.cat'
+#catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
 
 
 t = Table.read(catalog_filename, format='ascii')
