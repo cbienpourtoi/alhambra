@@ -59,9 +59,9 @@ plt.xlabel("SExtractor stellaricity parameter 'stell' (1=star ; 0=galaxy)")
 plt.title("Distribution of SExtractor stellaricity parameter 'stell'")
 plt.ylabel("Number of occurences")
 plt.hist(t['stell'], bins = 10)
-#plt.show()
+plt.show()
 savemyplot("Distribution_parameter_stell")
-plt.close()
+
 
 
 # Molino's 'Stellar_Flag' parameter
@@ -74,21 +74,36 @@ plt.show()
 savemyplot("Distribution_parameter_stellar_flag")
 plt.close()
 
-'''
-
+# SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter
 fig = plt.figure()
+plt.title("SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter")
+plt.xlabel("SExtractor stellaricity parameter 'stell'")
+plt.ylabel("Molino's stellaricity parameter 'Stellar_Flag'")
 plt.hist2d(t['stell'], t['Stellar_Flag'], bins=40, norm=LogNorm())
 plt.colorbar()
 #plt.show()
+savemyplot("Molino_VS_SExtractor_Stellaricity")
 plt.close()
+## Conclusions of this graph:
+## - At first order, if we forget about the line at y=0.5, the 2 parameters are coherent.
+## - The line at y=0.5 is expected: SExtractor is bad at distinguishing for these faint (F814W>22.5) objects. Molino classifies them at .5, but they are probably galaxies (99% chances).   
+## - The line at y=0.5 is stronger for low values of x, which is expected: it means SExtractor has a tendancy to classify these points as galaxies more than as stars. 
+
+
 
 fig = plt.figure()
-plt.plot( t['F814W'], t['stell'],'.')
-plt.plot( t['F814W'], t['Stellar_Flag'], '.')
+plt.title("SExtractor 'stell' and Molino's 'Stellar_Flag' VS F814W")
+plt.xlabel("F814W magnitude")
+plt.ylabel("stellaricity parameters")
+plt.plot( t['F814W'], t['stell'],'.', label='SEx stell')
+plt.plot( t['F814W'], t['Stellar_Flag'], '.', label='Molino Stellar_Flag')
+plt.legend(loc=2)
 #plt.show()
+savemyplot("Molino_and_SExtractor_Stellaricity_VS_F814W")
 plt.close()
+## Conclusions of this graph:
+## Molino considers everything with F814W>22.5 as 0.5, but strongly suggests it is a galaxy (99% chance).
 
-'''
 
 #x = np.genfromtxt(catalog_filename, dtype=['i8','i'])#, comments='#')#, names=True)
 
