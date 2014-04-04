@@ -15,6 +15,8 @@ def savemyplot(name):
 	fig.savefig(plot_directory+name+plot_extension)
 	return
 
+# If True, the code will study the stellaricity parameters and make some plots. Useless usually.
+study_stellaricity = False
 
 catalogs_directory = '../data/catalogs/'
 
@@ -34,82 +36,114 @@ t = Table.read(catalog_filename, format='ascii')
 print "There are "+ str(len(t))+" elements in this catalogue"
 
 
+
+####################################
+# Selection : no duplicates        #
+####################################
+
 # Selects only the objects that are not duplicated, or, if they are, selects only the best SNR object.
 t = t[:][np.where(t['DupliDet_Flag']==0)]
-print "There are "+ str(len(t))+" elements when low SNR duplicates are deleted"
-
-## Selects only the objects that are not likely to be stars.
-#t_noduplicates = t[:][np.where(t['DupliDet_Flag']==0)]
-#print "There are "+ str(len(t_noduplicates))+" elements when low SNR duplicates are deleted"
+print "There are "+ str(len(t))+" unique elements when low SNR duplicates are deleted"
 
 
 ####################################
 # A short study about stellaricity #
 ####################################
 
-# Catalog definitions:
-# 'stell' corresponds to SExtractor stellaricity
-# 'Stellar_Flag' is a much better indicator that takes in account many parameters: F814W, FWHM, J-Ks, F489W-F814W. 
-#    See Molino's paper, section "Star/galaxy separation".
+if study_stellaricity:
+
+	# Catalog definitions:
+	# 'stell' corresponds to SExtractor stellaricity
+	# 'Stellar_Flag' is a much better indicator that takes in account many parameters: F814W, FWHM, J-Ks, F489W-F814W. 
+	#    See Molino's paper, section "Star/galaxy separation".
 
 
-# SExtractor 'stell' parameter
+	# SExtractor 'stell' parameter
+	fig = plt.figure()
+	plt.xlabel("SExtractor stellaricity parameter 'stell' (1=star ; 0=galaxy)")
+	plt.title("Distribution of SExtractor stellaricity parameter 'stell'")
+	plt.ylabel("Number of occurences")
+	plt.hist(t['stell'], bins = 10)
+	#plt.show()
+	savemyplot("Distribution_parameter_stell")
+	plt.clf()
+
+
+
+	# Molino's 'Stellar_Flag' parameter
+	fig = plt.figure()
+	plt.xlabel("Molino's stellaricity parameter 'Stellar_Flag' (1=star ; 0=galaxy)")
+	plt.title("Distribution of Molino's stellaricity parameter 'Stellar_Flag'")
+	plt.ylabel("Number of occurences")
+	plt.hist(t['Stellar_Flag'], bins = 10)
+	#plt.show()
+	savemyplot("Distribution_parameter_stellar_flag")
+	plt.clf()
+
+	# SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter
+	fig = plt.figure()
+	plt.title("SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter")
+	plt.xlabel("SExtractor stellaricity parameter 'stell'")
+	plt.ylabel("Molino's stellaricity parameter 'Stellar_Flag'")
+	plt.hist2d(t['stell'], t['Stellar_Flag'], bins=40, norm=LogNorm())
+	plt.colorbar()
+	#plt.show()
+	savemyplot("Molino_VS_SExtractor_Stellaricity")
+	plt.clf()
+	## Conclusions of this graph:
+	## - At first order, if we forget about the line at y=0.5, the 2 parameters are coherent.
+	## - The line at y=0.5 is expected: SExtractor is bad at distinguishing for these faint (F814W>22.5) objects. Molino classifies them at .5, but they are probably galaxies (99% chances).   
+	## - The line at y=0.5 is stronger for low values of x, which is expected: it means SExtractor has a tendancy to classify these points as galaxies more than as stars. 
+
+
+	# SExtractor 'stell' parameter and Molino's 'Stellar_Flag' parameter VS F814W magnitude
+	fig = plt.figure()
+	plt.title("SExtractor 'stell' and Molino's 'Stellar_Flag' VS F814W")
+	plt.xlabel("F814W magnitude")
+	plt.ylabel("stellaricity parameters")
+	plt.plot( t['F814W'], t['stell'],'.', label='SEx stell')
+	plt.plot( t['F814W'], t['Stellar_Flag'], '.', label='Molino Stellar_Flag')
+	plt.legend(loc=2)
+	#plt.show()
+	savemyplot("Molino_and_SExtractor_Stellaricity_VS_F814W")
+	plt.clf()
+	## Conclusions of this graph:
+	## Molino considers everything with F814W>22.5 as 0.5, but strongly suggests it is a galaxy (99% chance).
+
+
+
+####################################
+# Selection : only galaxies        #
+####################################
+
+# Selects only the galaxies, i.e. objects who have Stellar_Flag<0.7 (according to Molino's mail 31/3/14)
+t = t[:][np.where(t['Stellar_Flag']<0.51)]
+print "There are "+ str(len(t))+" unique elements classified as galaxies (Stellar_Flag<0.7)"
+
+
+
+
+
+####################################
+# Selection : Odds                 #
+####################################
+
+
+# Odds vs mag
 fig = plt.figure()
-plt.xlabel("SExtractor stellaricity parameter 'stell' (1=star ; 0=galaxy)")
-plt.title("Distribution of SExtractor stellaricity parameter 'stell'")
-plt.ylabel("Number of occurences")
-plt.hist(t['stell'], bins = 10)
-plt.show()
-savemyplot("Distribution_parameter_stell")
-
-
-
-# Molino's 'Stellar_Flag' parameter
-fig = plt.figure()
-plt.xlabel("Molino's stellaricity parameter 'Stellar_Flag' (1=star ; 0=galaxy)")
-plt.title("Distribution of Molino's stellaricity parameter 'Stellar_Flag'")
-plt.ylabel("Number of occurences")
-plt.hist(t['Stellar_Flag'], bins = 10)
-plt.show()
-savemyplot("Distribution_parameter_stellar_flag")
-plt.close()
-
-# SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter
-fig = plt.figure()
-plt.title("SExtractor 'stell' parameter VS Molino's 'Stellar_Flag' parameter")
-plt.xlabel("SExtractor stellaricity parameter 'stell'")
-plt.ylabel("Molino's stellaricity parameter 'Stellar_Flag'")
-plt.hist2d(t['stell'], t['Stellar_Flag'], bins=40, norm=LogNorm())
-plt.colorbar()
-#plt.show()
-savemyplot("Molino_VS_SExtractor_Stellaricity")
-plt.close()
-## Conclusions of this graph:
-## - At first order, if we forget about the line at y=0.5, the 2 parameters are coherent.
-## - The line at y=0.5 is expected: SExtractor is bad at distinguishing for these faint (F814W>22.5) objects. Molino classifies them at .5, but they are probably galaxies (99% chances).   
-## - The line at y=0.5 is stronger for low values of x, which is expected: it means SExtractor has a tendancy to classify these points as galaxies more than as stars. 
-
-
-
-fig = plt.figure()
-plt.title("SExtractor 'stell' and Molino's 'Stellar_Flag' VS F814W")
+plt.title("Odds VS F814W")
 plt.xlabel("F814W magnitude")
-plt.ylabel("stellaricity parameters")
-plt.plot( t['F814W'], t['stell'],'.', label='SEx stell')
-plt.plot( t['F814W'], t['Stellar_Flag'], '.', label='Molino Stellar_Flag')
-plt.legend(loc=2)
-#plt.show()
-savemyplot("Molino_and_SExtractor_Stellaricity_VS_F814W")
-plt.close()
-## Conclusions of this graph:
-## Molino considers everything with F814W>22.5 as 0.5, but strongly suggests it is a galaxy (99% chance).
+plt.ylabel("Odds")
+#plt.plot( t['F814W'], t['Odds_1'],'.')
+plt.hist2d(t['F814W'], t['Odds_1'], bins=40, norm=LogNorm())
+plt.colorbar()
+plt.show()
+#savemyplot("Molino_and_SExtractor_Stellaricity_VS_F814W")
+plt.clf()
 
 
-#x = np.genfromtxt(catalog_filename, dtype=['i8','i'])#, comments='#')#, names=True)
+# "Selecting Odds>0.2 will remove several (unreliable) faint galaxies." (according to Molino's mail 31/3/14)
+t = t[:][np.where(t['Odds_1']>0.2)]
+print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than 0.2"
 
-#print x[1]
 
-
-#with open(catalog_filename) as file:
-#    for line in file:
-#        # whatever you wanted to do with each line
