@@ -74,7 +74,6 @@ if study_stellaricity:
 	plt.clf()
 
 
-
 	# Molino's 'Stellar_Flag' parameter
 	fig = plt.figure()
 	plt.xlabel("Molino's stellaricity parameter 'Stellar_Flag' (1=star ; 0=galaxy)")
@@ -139,16 +138,21 @@ fig = plt.figure()
 plt.title("Odds VS F814W")
 plt.xlabel("F814W magnitude")
 plt.ylabel("Odds")
-#plt.plot( t['F814W'], t['Odds_1'],'.')
 plt.hist2d(t['F814W'], t['Odds_1'], bins=40, norm=LogNorm())
+plt.plot([0,100],[Odds_1_Cut,Odds_1_Cut], '-', label="Odds Cut")
 plt.colorbar()
+plt.legend()
 plt.show()
-#savemyplot("Molino_and_SExtractor_Stellaricity_VS_F814W")
+savemyplot("Odds_vs_F814W")
 plt.clf()
 
 
 # "Selecting Odds>0.2 will remove several (unreliable) faint galaxies." (according to Molino's mail 31/3/14)
 t = t[:][np.where(t['Odds_1']>Odds_1_Cut)]
 print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than "+str(Odds_1_Cut)
+
+
+
+
 
 
