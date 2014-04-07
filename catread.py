@@ -15,14 +15,19 @@ def savemyplot(name):
 	fig.savefig(plot_directory+name+plot_extension)
 	return
 
-# If True, the code will study the stellaricity parameters and make some plots. Useless usually.
+# If True, the code will study some parameters and make some plots. Useless usually.
 study_stellaricity = False
+study_Flags = False
+study_Odds = False
+
 
 catalogs_directory = '../data/catalogs/'
 
 # Values of the cuts:
 Stellar_Flag_Cut = 0.51
 Odds_1_Cut = 0.2
+irms_OPT_Flag_Cut = 3
+irms_NIR_Flag_Cut = 1
 
 
 
@@ -125,34 +130,91 @@ t = t[:][np.where(t['Stellar_Flag']<Stellar_Flag_Cut)]
 print "There are "+ str(len(t))+" unique elements classified as galaxies (Stellar_Flag<0.7)"
 
 
+####################################
+# Study : photoflag,               #
+# irms_OPT_Flag, irms_NIR_Flag 	   #
+####################################
+
+if study_Flags:
+
+	# photoflag
+	fig = plt.figure()
+	plt.title("photoflag distribution (galaxies only)")
+	plt.xlabel("photoflag")
+	plt.ylabel("Number")
+	plt.hist(t['photoflag'], bins=20)
+	#plt.show()
+	savemyplot("photoflag_distribution")
+	plt.clf()
+
+	# irms_OPT_Flag
+	fig = plt.figure()
+	plt.title("irms_OPT_Flag distribution (galaxies only)")
+	plt.xlabel("irms_OPT_Flag")
+	plt.ylabel("Number")
+	plt.hist(t['irms_OPT_Flag'], bins=100)
+	#plt.show()
+	savemyplot("irms_OPT_Flag_distribution")
+	plt.clf()
+
+	# irms_NIR_Flag
+	fig = plt.figure()
+	plt.title("irms_NIR_Flag distribution (galaxies only)")
+	plt.xlabel("irms_NIR_Flag")
+	plt.ylabel("Number")
+	plt.hist(t['irms_NIR_Flag'], bins=10)
+	#plt.show()
+	savemyplot("irms_NIR_Flag_distribution")
+	plt.clf()
 
 
 
 ####################################
-# Selection : Odds                 #
+# Study : Odds                     #
 ####################################
 
 
-# Odds vs mag
-fig = plt.figure()
-plt.title("Odds VS F814W")
-plt.xlabel("F814W magnitude")
-plt.ylabel("Odds")
-plt.hist2d(t['F814W'], t['Odds_1'], bins=40, norm=LogNorm())
-plt.plot([0,100],[Odds_1_Cut,Odds_1_Cut], '-', label="Odds Cut")
-plt.colorbar()
-plt.legend()
-plt.show()
-savemyplot("Odds_vs_F814W")
-plt.clf()
+if study_Odds:
 
+	# Odds vs mag
+	fig = plt.figure()
+	plt.title("Odds VS F814W")
+	plt.xlabel("F814W magnitude")
+	plt.ylabel("Odds")
+	plt.hist2d(t['F814W'], t['Odds_1'], bins=40, norm=LogNorm())
+	plt.plot([0,100],[Odds_1_Cut,Odds_1_Cut], '-', label="Odds Cut")
+	plt.colorbar()
+	plt.legend()
+	#plt.show()
+	#savemyplot("Odds_vs_F814W")
+	plt.clf()
+
+
+
+####################################
+# Selection : Odds, PhotoFlag,     #
+# irms_OPT_Flag, irms_NIR_Flag     #
+####################################
 
 # "Selecting Odds>0.2 will remove several (unreliable) faint galaxies." (according to Molino's mail 31/3/14)
 t = t[:][np.where(t['Odds_1']>Odds_1_Cut)]
 print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than "+str(Odds_1_Cut)
 
 
+# "irms_OPT_Flag" & "irms_NIR_Flag" indicate the number of
+# passbands (out of 23) in the Optican and in the NIR (respect.) a galaxy
+# was poorly observed due to an insufficient exposure time. In other words,
+# detections with values larger that irms_OPT_Flag>3 and irms_NIR_Flag>1
+# could have a suspicious photo-z since the photometry was not as clean as
+# the other galaxies." (according to Molino's mail 31/3/14)
+
+t = t[:][np.where(t['irms_OPT_Flag']<irms_OPT_Flag_Cut)]
+print "Remains   "+ str(len(t))+" elements with less than "+str(irms_OPT_Flag_Cut)+ " optical bands in which there is no detection"
+
+t = t[:][np.where(t['irms_NIR_Flag']<irms_NIR_Flag_Cut)]
+print "Remains   "+ str(len(t))+" elements with less than "+str(irms_NIR_Flag_Cut)+ " NIR bands in which there is no detection"
 
 
+# ADD photoflag
 
 
