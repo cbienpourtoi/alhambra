@@ -20,6 +20,11 @@ study_stellaricity = False
 
 catalogs_directory = '../data/catalogs/'
 
+# Values of the cuts:
+Stellar_Flag_Cut = 0.51
+Odds_1_Cut = 0.2
+
+
 
 # Due to a bug in astropy.table (see :
 # http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
@@ -117,7 +122,7 @@ if study_stellaricity:
 ####################################
 
 # Selects only the galaxies, i.e. objects who have Stellar_Flag<0.7 (according to Molino's mail 31/3/14)
-t = t[:][np.where(t['Stellar_Flag']<0.51)]
+t = t[:][np.where(t['Stellar_Flag']<Stellar_Flag_Cut)]
 print "There are "+ str(len(t))+" unique elements classified as galaxies (Stellar_Flag<0.7)"
 
 
@@ -143,7 +148,7 @@ plt.clf()
 
 
 # "Selecting Odds>0.2 will remove several (unreliable) faint galaxies." (according to Molino's mail 31/3/14)
-t = t[:][np.where(t['Odds_1']>0.2)]
-print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than 0.2"
+t = t[:][np.where(t['Odds_1']>Odds_1_Cut)]
+print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than "+str(Odds_1_Cut)
 
 
