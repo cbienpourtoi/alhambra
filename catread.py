@@ -28,7 +28,7 @@ Stellar_Flag_Cut = 0.51
 Odds_1_Cut = 0.2
 irms_OPT_Flag_Cut = 3
 irms_NIR_Flag_Cut = 1
-
+photoflag_Cut = 1
 
 
 # Due to a bug in astropy.table (see :
@@ -201,6 +201,8 @@ t = t[:][np.where(t['Odds_1']>Odds_1_Cut)]
 print "There are "+ str(len(t))+" unique elements classified as galaxies with Odds better than "+str(Odds_1_Cut)
 
 
+# "irms_OPT_Flag" & "irms_NIR_Flag"
+
 # "irms_OPT_Flag" & "irms_NIR_Flag" indicate the number of
 # passbands (out of 23) in the Optican and in the NIR (respect.) a galaxy
 # was poorly observed due to an insufficient exposure time. In other words,
@@ -215,6 +217,29 @@ t = t[:][np.where(t['irms_NIR_Flag']<irms_NIR_Flag_Cut)]
 print "Remains   "+ str(len(t))+" elements with less than "+str(irms_NIR_Flag_Cut)+ " NIR bands in which there is no detection"
 
 
-# ADD photoflag
+# photoflag
+
+#"If you are interested in few galaxies you can look at the "photo flag"
+#which is a photometric Flag based on SExtractor. It warns you whether the
+#galaxy was photometrically compromised when estimating its fluxes (due to
+#a neighbor galaxy, has a saturated pixel,...) or the photometry was clean."
+#(according to Molino's mail 31/3/14)
+
+#SExtractor manual. Flag parameter at sections 9 and 9.1
+#https://www.astromatic.net/pubsvn/software/sextractor/trunk/doc/sextractor.pdf
+#Flags:
+#1      The object has neighbours, bright and close enough to significantly bias the MAGAUTO photometry, or bad pixels (more than 10% of the integrated area affected)
+#2      The object was originally blended with another one,
+#4      At least one pixel of the object is saturated (or very close to),
+#8      The object is truncated (too close to an image boundary),
+#16     Object's aperture data are incomplete or corrupted,
+#32     Object's isophotal data are incomplete or corrupted
+#64     A memory overflow occurred during deblending,
+#128    A memory overflow occurred during extraction.
+
+t = t[:][np.where(t['photoflag']<photoflag_Cut)]
+print "Remains   "+ str(len(t))+" elements with photoflag<"+str(photoflag_Cut)+ "."
+
+
 
 
