@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from astropy.table import Table
 import scipy
 from matplotlib.colors import LogNorm
+import sys
 
 plot_extension = ".png"
 plot_directory = "../plots/"
@@ -30,6 +31,11 @@ irms_OPT_Flag_Cut = 1
 irms_NIR_Flag_Cut = 1
 photoflag_Cut = 1
 
+# Make a table of the spectral axis of the Alhambra catalog
+filter_names = ['F365W', 'F396W', 'F427W', 'F458W', 'F489W', 'F520W', 'F551W', 'F582W', 'F613W', 'F644W', 'F675W', 'F706W', 'F737W', 'F768W', 'F799W', 'F830W', 'F861W', 'F892W', 'F923W', 'F954W', 'J', 'H', 'KS']
+filter_leff = [365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.]
+filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), meta={'name': 'table of the filters'})
+
 
 # Due to a bug in astropy.table (see :
 # http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
@@ -39,6 +45,7 @@ photoflag_Cut = 1
 # Truncated catalog name has a "MYVERSION." prefix.
 catalog_filename = catalogs_directory+'MYVERSION.alhambra.F02P01C01.ColorProBPZ.cat'
 #catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
+#catalog_filename = catalogs_directory+'MYVERSION.alhambra.F07P03C01.ColorProBPZ.cat'
 
 
 t = Table.read(catalog_filename, format='ascii')
@@ -283,9 +290,28 @@ if study_z:
 	plt.clf()
 
 
-t_z0 = t[:][np.where(t['zb_1']<0.2)]
-print "Remains   "+ str(len(t_z0))+" elements with z<0.2"
+t_z0 = t[:][np.where(t['zb_1']<0.7)]
+t_z0 = t_z0[:][np.where(t_z0['zb_1']>0.5)]
 
+#print "Remains   "+ str(len(t_z0))+" elements with z<0.2"
+
+l1 = 'F551W'
+l2 = 'F923W'
+
+t_z0 = t_z0[:][np.where(t_z0[l1]<99)]
+t_z0 = t_z0[:][np.where(t_z0[l2]<99)]
+
+'''
+# Redshifts distribution
+fig = plt.figure()
+#plt.title("Redshifts distribution")
+#plt.xlabel("Redshifts (zb - Bayesian)")
+#plt.ylabel("#")
+plt.hist(t_z0['zb_1'], bins=10)
+plt.show()
+#savemyplot("")
+plt.clf()
+'''
 
 
 # Odds vs mag
@@ -294,14 +320,13 @@ fig = plt.figure()
 #plt.xlabel("F814W magnitude")
 #plt.ylabel("Odds")
 #plt.hist(t_z0['F675W'], bins = 50)
-plt.hist(t_z0['F458W'] - t_z0['F675W'], bins = 1000)
+plt.hist2d(t_z0['Stell_Mass_1'], t_z0[l1] - t_z0[l2], bins = 50)
 #plt.plot(t_z0['F458W'], t_z0['F675W'], '.')
 plt.show()
 #savemyplot("Odds_vs_F814W")
 plt.clf()
 
 
-print t_z0['F458W'] - t_z0['F675W']
 
 
 
