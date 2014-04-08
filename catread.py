@@ -19,14 +19,14 @@ def savemyplot(name):
 study_stellaricity = False
 study_Flags = False
 study_Odds = False
-
+study_z = False
 
 catalogs_directory = '../data/catalogs/'
 
 # Values of the cuts:
 Stellar_Flag_Cut = 0.51
 Odds_1_Cut = 0.2
-irms_OPT_Flag_Cut = 3
+irms_OPT_Flag_Cut = 1
 irms_NIR_Flag_Cut = 1
 photoflag_Cut = 1
 
@@ -239,6 +239,69 @@ print "Remains   "+ str(len(t))+" elements with less than "+str(irms_NIR_Flag_Cu
 
 t = t[:][np.where(t['photoflag']<photoflag_Cut)]
 print "Remains   "+ str(len(t))+" elements with photoflag<"+str(photoflag_Cut)+ "."
+
+
+
+
+
+####################################
+# Study : Redshifts                #
+####################################
+
+
+# Bayesian approach :
+# zb is the Bayesian value of theredshift (and tb_1 for spectra-type)
+
+# No Prior (to avoid) :
+# z_ml (and t_ml) represent again the photometric redshift 
+# and its spectral-type but estimated using a maximum 
+# likelihood without priors (instead of a Bayesian approach).
+
+
+
+if study_z:
+
+	# Redshifts distribution
+	fig = plt.figure()
+	plt.title("Redshifts distribution")
+	plt.xlabel("Redshifts (zb - Bayesian)")
+	plt.ylabel("#")
+	plt.hist(t['zb_1'], bins=50)
+	#plt.hist(t['z_ml'], bins=50)
+	#plt.hist2d(t['z_ml'], t['zb_1'])
+	plt.show()
+	savemyplot("z_dist")
+	plt.clf()
+
+	fig = plt.figure()
+	plt.title("Bayesian vs no-prior approach Redshifts")
+	plt.ylabel("Redshifts (zb - Bayesian)")
+	plt.xlabel("Redshifts (z_ml - no prior)")
+	plt.hist2d(t['z_ml'], t['zb_1'], bins = 30, norm=LogNorm())
+	plt.show()
+	savemyplot("z_Bayes_vs_noprior")
+	plt.clf()
+
+
+t_z0 = t[:][np.where(t['zb_1']<0.2)]
+print "Remains   "+ str(len(t_z0))+" elements with z<0.2"
+
+
+
+# Odds vs mag
+fig = plt.figure()
+#plt.title("Odds VS F814W")
+#plt.xlabel("F814W magnitude")
+#plt.ylabel("Odds")
+#plt.hist(t_z0['F675W'], bins = 50)
+plt.hist(t_z0['F458W'] - t_z0['F675W'], bins = 1000)
+#plt.plot(t_z0['F458W'], t_z0['F675W'], '.')
+plt.show()
+#savemyplot("Odds_vs_F814W")
+plt.clf()
+
+
+print t_z0['F458W'] - t_z0['F675W']
 
 
 
