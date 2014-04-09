@@ -290,8 +290,8 @@ if study_z:
 	plt.clf()
 
 
-t_z0 = t[:][np.where(t['zb_1']<0.7)]
-t_z0 = t_z0[:][np.where(t_z0['zb_1']>0.5)]
+t_z0 = t[:][np.where(t['zb_1']<0.1)]
+#t_z0 = t_z0[:][np.where(t_z0['zb_1']>0.5)]
 
 #print "Remains   "+ str(len(t_z0))+" elements with z<0.2"
 
@@ -313,7 +313,7 @@ plt.show()
 plt.clf()
 '''
 
-
+'''
 # Odds vs mag
 fig = plt.figure()
 #plt.title("Odds VS F814W")
@@ -322,9 +322,30 @@ fig = plt.figure()
 #plt.hist(t_z0['F675W'], bins = 50)
 plt.hist2d(t_z0['Stell_Mass_1'], t_z0[l1] - t_z0[l2], bins = 50)
 #plt.plot(t_z0['F458W'], t_z0['F675W'], '.')
-plt.show()
+#plt.show()
 #savemyplot("Odds_vs_F814W")
 plt.clf()
+'''
+
+nspec = 10
+magspec = np.array(t_z0[filters['Filter'][:].tolist()][nspec]).tolist()
+spec = 10.**(-2.5 * np.array(magspec))
+
+# Plot spectra
+fig = plt.figure()
+#plt.title("Odds VS F814W")
+#plt.xlabel("F814W magnitude")
+#plt.ylabel("Odds")
+#plt.hist(t_z0['F675W'], bins = 50)
+#plt.plot(filters['Lambda eff (A)'][:], t_z0[filters['Filter'][:].tolist()][0])
+for nspec in range(0,30):
+	magspec = np.array(t_z0[filters['Filter'][:].tolist()][nspec]).tolist()
+	spec = 10.**(-2.5 * np.array(magspec))
+	spec = spec/(spec[9])
+	plt.plot(filters['Lambda eff (A)'][:], spec, '-')
+plt.show()
+#savemyplot("Odds_vs_F814W")
+plt.close()
 
 
 
