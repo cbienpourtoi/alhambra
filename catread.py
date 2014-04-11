@@ -9,6 +9,7 @@ from astropy.table import Table
 import scipy
 from matplotlib.colors import LogNorm
 import sys
+import glob
 
 plot_extension = ".png"
 plot_directory = "../plots/"
@@ -22,17 +23,6 @@ study_Flags = False
 study_Odds = False
 study_z = False
 
-# Due to a bug in astropy.table (see :
-# http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
-# and
-# https://github.com/astropy/astropy/pull/2234 )
-# I truncate the first line of my catalogs until the bug is corrected.
-# Truncated catalog name has a "first_col_truncated." prefix, and is in 
-# a different directory "/first_col_truncated/".
-catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
-# When the bug is solved,use this line:
-#catalogs_directory = '../data/catalogs/original_catalogs/'
-
 
 # Values of the cuts:
 Stellar_Flag_Cut = 0.51
@@ -45,6 +35,21 @@ photoflag_Cut = 1
 filter_names = ['F365W', 'F396W', 'F427W', 'F458W', 'F489W', 'F520W', 'F551W', 'F582W', 'F613W', 'F644W', 'F675W', 'F706W', 'F737W', 'F768W', 'F799W', 'F830W', 'F861W', 'F892W', 'F923W', 'F954W', 'J', 'H', 'KS']
 filter_leff = [365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.]
 filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), meta={'name': 'table of the filters'})
+
+
+
+
+# Due to a bug in astropy.table (see :
+# http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
+# and
+# https://github.com/astropy/astropy/pull/2234 )
+# I truncate the first line of my catalogs until the bug is corrected.
+# Truncated catalog name has a "first_col_truncated." prefix, and is in 
+# a different directory "/first_col_truncated/".
+catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
+# When the bug is solved,use this line:
+#catalogs_directory = '../data/catalogs/original_catalogs/'
+
 
 
 catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
