@@ -22,7 +22,17 @@ study_Flags = False
 study_Odds = False
 study_z = False
 
-catalogs_directory = '../data/catalogs/'
+# Due to a bug in astropy.table (see :
+# http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
+# and
+# https://github.com/astropy/astropy/pull/2234 )
+# I truncate the first line of my catalogs until the bug is corrected.
+# Truncated catalog name has a "first_col_truncated." prefix, and is in 
+# a different directory "/first_col_truncated/".
+catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
+# When the bug is solved,use this line:
+catalogs_directory = '../data/catalogs/original_catalogs/'
+
 
 # Values of the cuts:
 Stellar_Flag_Cut = 0.51
@@ -37,15 +47,7 @@ filter_leff = [365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675.,
 filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), meta={'name': 'table of the filters'})
 
 
-# Due to a bug in astropy.table (see :
-# http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
-# and
-# https://github.com/astropy/astropy/pull/2234 )
-# I truncate the first line of my catalogs until the bug is corrected.
-# Truncated catalog name has a "MYVERSION." prefix.
-catalog_filename = catalogs_directory+'MYVERSION.alhambra.F02P01C01.ColorProBPZ.cat'
-#catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
-#catalog_filename = catalogs_directory+'MYVERSION.alhambra.F07P03C01.ColorProBPZ.cat'
+catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
 
 
 t = Table.read(catalog_filename, format='ascii')
