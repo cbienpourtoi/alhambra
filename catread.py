@@ -5,7 +5,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from astropy.table import Table
+from astropy.table import Table, join
+from astropy.io import ascii
 import scipy
 from matplotlib.colors import LogNorm
 import sys
@@ -31,6 +32,11 @@ irms_OPT_Flag_Cut = 1
 irms_NIR_Flag_Cut = 1
 photoflag_Cut = 1
 
+
+# Expected number of Alhambra catalogues
+exp_numb_cats = 48
+
+
 # Make a table of the spectral axis of the Alhambra catalog
 filter_names = ['F365W', 'F396W', 'F427W', 'F458W', 'F489W', 'F520W', 'F551W', 'F582W', 'F613W', 'F644W', 'F675W', 'F706W', 'F737W', 'F768W', 'F799W', 'F830W', 'F861W', 'F892W', 'F923W', 'F954W', 'J', 'H', 'KS']
 filter_leff = [365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.]
@@ -52,10 +58,43 @@ catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.'
 
 
 
-catalog_filename = catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
+catalog_names = glob.glob(catalogs_directory+'alhambra.*.ColorProBPZ.cat')
+print "I have found "+str(len(catalog_names))+" catalogues."
+if exp_numb_cats != len(catalog_names) :
+	print "WARNING: The expected number of catalogues is "+str(exp_numb_cats)+". Why do we read a different number?" 
+
+'''
+t = Table.read(catalog_names[0], format='ascii')
+t1 = Table.read(catalog_names[1], format='ascii')
+t2 = join(t,t1)
+
+print t2
+print len(t2)
+'''
 
 
-t = Table.read(catalog_filename, format='ascii')
+
+for catalog_filename in catalog_names:
+	if catalog_filename == catalog_names[0]:
+		t = Table.read(catalog_filename, format='ascii')
+		print "first catalog"
+	else:
+		t1 = t
+		t = Table.read(catalog_filename, format='ascii')
+		t = join(t1, t, join_type='outer')
+	print "I have red "+ catalog_filename
+
+ascii.write(t, 'test.dat')
+
+sys.exit()
+
+
+#= catalogs_directory+'alhambra.F02P01C01.ColorProBPZ.cat'
+
+
+#t = Table.read(catalog_filename, format='ascii')
+
+
 
 print "There are "+ str(len(t))+" elements in this catalogue"
 
