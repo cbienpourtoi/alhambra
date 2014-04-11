@@ -31,7 +31,7 @@ study_z = False
 # a different directory "/first_col_truncated/".
 catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
 # When the bug is solved,use this line:
-catalogs_directory = '../data/catalogs/original_catalogs/'
+#catalogs_directory = '../data/catalogs/original_catalogs/'
 
 
 # Values of the cuts:
