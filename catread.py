@@ -28,7 +28,7 @@ filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), 
 
 # Will create a Master catalog from the alhambra catalogs if True
 # If False, will use the master catalog file created previously.
-create_master_catalog = True
+create_master_catalog = False
 
 
 # Name of Master catalog (containing all sorted infos from all alhambra catalogs):
@@ -359,7 +359,7 @@ if create_master_catalog:
 # Opens the Master catalog if we are not in master catalog creation mode:
 else :
 	
-	if os.ists(master_catalog_directory + master_catalog_name):
+	if os.path.exists(master_catalog_directory + master_catalog_name):
 		t = Table.read(master_catalog_directory + master_catalog_name, format='ascii')
 		print "Finished reading Master catalog: "+str(master_catalog_directory + master_catalog_name)
 		print str(len(t))+ " lines red."
@@ -368,16 +368,16 @@ else :
 		sys.exit()
 
 
-#t = t[:][np.where(t['zb_1']<0.1)]
-#t = t[:][np.where(t_z0['zb_1']>0.5)]
+t = t[:][np.where(t['zb_1']<0.1)]
+#t = t[:][np.where(t['zb_1']>0.5)]
 
-#print "Remains   "+ str(len(t_z0))+" elements with z<0.2"
+#print "Remains   "+ str(len(t))+" elements with z<0.2"
 
 l1 = 'F551W'
 l2 = 'F923W'
 
-t_z0 = t_z0[:][np.where(t_z0[l1]<99)]
-t_z0 = t_z0[:][np.where(t_z0[l2]<99)]
+t = t[:][np.where(t[l1]<99)]
+t = t[:][np.where(t[l2]<99)]
 
 '''
 # Redshifts distribution
@@ -385,7 +385,7 @@ fig = plt.figure()
 #plt.title("Redshifts distribution")
 #plt.xlabel("Redshifts (zb - Bayesian)")
 #plt.ylabel("#")
-plt.hist(t_z0['zb_1'], bins=10)
+plt.hist(t['zb_1'], bins=10)
 plt.show()
 #savemyplot("")
 plt.clf()
@@ -397,16 +397,16 @@ fig = plt.figure()
 #plt.title("Odds VS F814W")
 #plt.xlabel("F814W magnitude")
 #plt.ylabel("Odds")
-#plt.hist(t_z0['F675W'], bins = 50)
-plt.hist2d(t_z0['Stell_Mass_1'], t_z0[l1] - t_z0[l2], bins = 50)
-#plt.plot(t_z0['F458W'], t_z0['F675W'], '.')
+#plt.hist(t['F675W'], bins = 50)
+plt.hist2d(t['Stell_Mass_1'], t[l1] - t[l2], bins = 50)
+#plt.plot(t['F458W'], t['F675W'], '.')
 #plt.show()
 #savemyplot("Odds_vs_F814W")
 plt.clf()
 '''
 
 nspec = 10
-magspec = np.array(t_z0[filters['Filter'][:].tolist()][nspec]).tolist()
+magspec = np.array(t[filters['Filter'][:].tolist()][nspec]).tolist()
 spec = 10.**(-2.5 * np.array(magspec))
 
 # Plot spectra
@@ -414,10 +414,10 @@ fig = plt.figure()
 #plt.title("Odds VS F814W")
 #plt.xlabel("F814W magnitude")
 #plt.ylabel("Odds")
-#plt.hist(t_z0['F675W'], bins = 50)
-#plt.plot(filters['Lambda eff (A)'][:], t_z0[filters['Filter'][:].tolist()][0])
+#plt.hist(t['F675W'], bins = 50)
+#plt.plot(filters['Lambda eff (A)'][:], t[filters['Filter'][:].tolist()][0])
 for nspec in range(0,30):
-	magspec = np.array(t_z0[filters['Filter'][:].tolist()][nspec]).tolist()
+	magspec = np.array(t[filters['Filter'][:].tolist()][nspec]).tolist()
 	spec = 10.**(-2.5 * np.array(magspec))
 	spec = spec/(spec[9])
 	plt.plot(filters['Lambda eff (A)'][:], spec, '-')
