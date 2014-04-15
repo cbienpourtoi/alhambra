@@ -21,7 +21,7 @@ def savemyplot(name):
 
 # Make a table of the spectral axis of the Alhambra catalog
 filter_names = ['F365W', 'F396W', 'F427W', 'F458W', 'F489W', 'F520W', 'F551W', 'F582W', 'F613W', 'F644W', 'F675W', 'F706W', 'F737W', 'F768W', 'F799W', 'F830W', 'F861W', 'F892W', 'F923W', 'F954W', 'J', 'H', 'KS']
-filter_leff = [365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.]
+filter_leff = np.array([365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.])
 filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), meta={'name': 'table of the filters'})
 
 
@@ -351,7 +351,9 @@ if create_master_catalog:
 
 		# Joins the new catalog to the master catalog being created
 		if catalog_filename != catalog_names[0]:
+			print t['Stell_Mass_1'].mean()
 			t = join(t_buffer, t, join_type='outer')
+			print t['Stell_Mass_1'].mean()
 
 	# Writes the Master catalog:
 	ascii.write(t, master_catalog_directory + master_catalog_name)
@@ -368,47 +370,82 @@ else :
 		sys.exit()
 
 
-t = t[:][np.where(t['zb_1']<0.1)]
-#t = t[:][np.where(t['zb_1']>0.5)]
+t_keep = t;
 
-#print "Remains   "+ str(len(t))+" elements with z<0.2"
+# Mean z
+for z_mean in (np.arange(10)+1.)/100.:
+	print z_mean
+	#z_mean = 0.3
+	z_delta = 0.05
 
-l1 = 'F551W'
-l2 = 'F923W'
+	#print t['Stell_Mass_1'].mean()
+	t = t_keep[:][np.where(t_keep['zb_1']>z_mean-z_delta)]
+	t = t[:][np.where(t['zb_1']<z_mean+z_delta)]
+	#print t['Stell_Mass_1'].mean()
+	#t = t[:][np.where(t['zb_1']>0.5)]
 
-t = t[:][np.where(t[l1]<99)]
-t = t[:][np.where(t[l2]<99)]
 
-'''
-# Redshifts distribution
-fig = plt.figure()
-#plt.title("Redshifts distribution")
-#plt.xlabel("Redshifts (zb - Bayesian)")
-#plt.ylabel("#")
-plt.hist(t['zb_1'], bins=10)
-plt.show()
-#savemyplot("")
-plt.clf()
-'''
+	#print "Remains   "+ str(len(t))+" elements with z<0.2"
 
-'''
-# Odds vs mag
-fig = plt.figure()
-#plt.title("Odds VS F814W")
-#plt.xlabel("F814W magnitude")
-#plt.ylabel("Odds")
-#plt.hist(t['F675W'], bins = 50)
-plt.hist2d(t['Stell_Mass_1'], t[l1] - t[l2], bins = 50)
-#plt.plot(t['F458W'], t['F675W'], '.')
-#plt.show()
-#savemyplot("Odds_vs_F814W")
-plt.clf()
-'''
+	# Observed wavelengths for the color, in nm
+	lem1 = 365. #nm
+	lem2 = 658. #nm
+
+	# Emission wavelengths for the color, in nm
+	lobs1 = lem1*(1+z_mean)
+	lobs2 = lem2*(1+z_mean)
+
+	filter1 = filter_names[np.argmin(abs(filter_leff - lobs1))]
+	filter2 = filter_names[np.argmin(abs(filter_leff - lobs2))]
+
+	print filter1, filter2
+
+	#filter_names = ['F365W']
+	#filter_leff = [365.]
+	#filters = Table()
+
+
+
+	#l1 = 'F551W'
+	#l2 = 'F954W'
+	#l2 = 'J'
+
+	t = t[:][np.where(t[filter1]<99)]
+	t = t[:][np.where(t[filter2]<99)]
+
+	'''
+	# Redshifts distribution
+	fig = plt.figure()
+	#plt.title("Redshifts distribution")
+	#plt.xlabel("Redshifts (zb - Bayesian)")
+	#plt.ylabel("#")
+	plt.hist(t['zb_1'], bins=10)
+	plt.show()
+	#savemyplot("")
+	plt.clf()
+	'''
+
+
+	# Odds vs mag
+	fig = plt.figure()
+	#plt.title("Odds VS F814W")
+	#plt.xlabel("F814W magnitude")
+	#plt.ylabel("Odds")
+	#plt.hist(t['F675W'], bins = 50)
+	plt.hist2d(t['Stell_Mass_1'], t[filter1] - t[filter2], bins = 200)
+	#plt.hist(t[l1] - t[l2], bins = 200)
+	#plt.hist(t['Stell_Mass_1'], bins = 50)
+	#plt.plot(t['F458W'], t['F675W'], '.')
+	plt.show()
+	savemyplot("CMD_"+str(z_mean))
+	plt.close()
+
 
 nspec = 10
 magspec = np.array(t[filters['Filter'][:].tolist()][nspec]).tolist()
 spec = 10.**(-2.5 * np.array(magspec))
 
+'''
 # Plot spectra
 fig = plt.figure()
 #plt.title("Odds VS F814W")
@@ -424,7 +461,7 @@ for nspec in range(0,30):
 plt.show()
 #savemyplot("Odds_vs_F814W")
 plt.close()
-
+'''
 
 
 
