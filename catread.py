@@ -373,7 +373,7 @@ else :
 t_keep = t;
 
 # Mean z
-for z_mean in (np.arange(10)+1.)/100.:
+for z_mean in (np.arange(10)+1.)/10.:
 	print z_mean
 	#z_mean = 0.3
 	z_delta = 0.05
