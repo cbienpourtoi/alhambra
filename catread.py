@@ -370,10 +370,22 @@ else :
 		sys.exit()
 
 
+
+fig = plt.figure()
+plt.title("z distribution")
+plt.xlabel("z")
+plt.hist(t['zb_1'], bins = 100)
+#plt.show()
+savemyplot("z_distribution")
+plt.close()
+
+
+
+
 t_keep = t;
 
 # Mean z
-for z_mean in (np.arange(10)+1.)/10.:
+for z_mean in (np.arange(15)+1.)/10.:
 	print z_mean
 	#z_mean = 0.3
 	z_delta = 0.05
@@ -388,8 +400,8 @@ for z_mean in (np.arange(10)+1.)/10.:
 	#print "Remains   "+ str(len(t))+" elements with z<0.2"
 
 	# Observed wavelengths for the color, in nm
-	lem1 = 365. #nm
-	lem2 = 658. #nm
+	lem1 = 350. #nm
+	lem2 = 700. #nm
 
 	# Emission wavelengths for the color, in nm
 	lobs1 = lem1*(1+z_mean)
@@ -428,15 +440,17 @@ for z_mean in (np.arange(10)+1.)/10.:
 
 	# Odds vs mag
 	fig = plt.figure()
-	#plt.title("Odds VS F814W")
-	#plt.xlabel("F814W magnitude")
-	#plt.ylabel("Odds")
+	plt.title("CMD @ z~"+str(z_mean))
+	plt.xlabel("Stellar Mass")
+	plt.ylabel(filter1+" - "+filter2)
+	plt.xlim([6,12])
+	plt.ylim([-1,4])
 	#plt.hist(t['F675W'], bins = 50)
-	plt.hist2d(t['Stell_Mass_1'], t[filter1] - t[filter2], bins = 200)
+	plt.hist2d(t['Stell_Mass_1'], t[filter1] - t[filter2], bins = 200, range=np.array([(6, 12), (-1, 4)]))
 	#plt.hist(t[l1] - t[l2], bins = 200)
 	#plt.hist(t['Stell_Mass_1'], bins = 50)
 	#plt.plot(t['F458W'], t['F675W'], '.')
-	plt.show()
+	#plt.show()
 	savemyplot("CMD_"+str(z_mean))
 	plt.close()
 
