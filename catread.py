@@ -7,11 +7,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.table import Table, join
 from astropy.io import ascii
+from astropy import cosmology
+from astropy import units
 import scipy
 from matplotlib.colors import LogNorm
 import sys
 import glob
 import os
+
 
 plot_extension = ".png"
 plot_directory = "../plots/"
@@ -19,11 +22,22 @@ def savemyplot(name):
 	fig.savefig(plot_directory+name+plot_extension)
 	return
 
+
+
 # Make a table of the spectral axis of the Alhambra catalog
 filter_names = ['F365W', 'F396W', 'F427W', 'F458W', 'F489W', 'F520W', 'F551W', 'F582W', 'F613W', 'F644W', 'F675W', 'F706W', 'F737W', 'F768W', 'F799W', 'F830W', 'F861W', 'F892W', 'F923W', 'F954W', 'J', 'H', 'KS']
 filter_leff = np.array([365., 396., 427., 458., 489., 520., 551., 582., 613., 644., 675., 706., 737., 768., 799., 830., 861., 892., 923., 954., 1216., 1655., 2146.])
 filters = Table([filter_names,filter_leff], names=('Filter', 'Lambda eff (A)'), meta={'name': 'table of the filters'})
 
+
+
+# Test mode ? If true, only a small number of values will be red from the master catalog
+test_mode = False
+
+if test_mode: 
+	number_lines_to_read = 1000
+else:
+	number_lines_to_read = -1
 
 
 # Will create a Master catalog from the alhambra catalogs if True
@@ -362,7 +376,7 @@ if create_master_catalog:
 else :
 	
 	if os.path.exists(master_catalog_directory + master_catalog_name):
-		t = Table.read(master_catalog_directory + master_catalog_name, format='ascii')
+		t = Table.read(master_catalog_directory + master_catalog_name, format='ascii', data_end=number_lines_to_read)
 		print "Finished reading Master catalog: "+str(master_catalog_directory + master_catalog_name)
 		print str(len(t))+ " lines red."
 	else:
@@ -371,12 +385,22 @@ else :
 
 
 
+# Redshift distribution whole sample
 fig = plt.figure()
 plt.title("z distribution")
 plt.xlabel("z")
 plt.hist(t['zb_1'], bins = 100)
 #plt.show()
 savemyplot("z_distribution")
+plt.close()
+
+# Stellar Mass distribution whole sample
+fig = plt.figure()
+plt.title("Stellar Mass distribution")
+plt.xlabel("Stell_Mass_1")
+plt.hist(t['Stell_Mass_1'], bins = 100)
+#plt.show()
+savemyplot("Stell_Mass_distribution")
 plt.close()
 
 
@@ -438,9 +462,9 @@ for z_mean in (np.arange(15)+1.)/10.:
 	'''
 
 
-	# Odds vs mag
+	# Color vs Stellar Mass
 	fig = plt.figure()
-	plt.title("CMD @ z~"+str(z_mean))
+	plt.title("Color vs Stellar Mass @ z~"+str(z_mean))
 	plt.xlabel("Stellar Mass")
 	plt.ylabel(filter1+" - "+filter2)
 	plt.xlim([6,12])
@@ -451,9 +475,66 @@ for z_mean in (np.arange(15)+1.)/10.:
 	#plt.hist(t['Stell_Mass_1'], bins = 50)
 	#plt.plot(t['F458W'], t['F675W'], '.')
 	#plt.show()
-	savemyplot("CMD_"+str(z_mean))
+	savemyplot("Color_StellarMass_"+str(z_mean))
 	plt.close()
 
+	# Color vs Apparent Magnitude
+	fig = plt.figure()
+	plt.title("Color vs Apparent Magnitude @ z~"+str(z_mean))
+	plt.xlabel("m "+filter2)
+	plt.ylabel(filter1+" - "+filter2)
+	#plt.xlim([27,19])
+	#plt.ylim([-1,4])
+	#plt.hist(t['F675W'], bins = 50)
+	plt.hist2d(t[filter2], t[filter1] - t[filter2], bins = 50, range=np.array([(19, 27), (-1, 4)]), norm=LogNorm())
+	plt.axis([27, 19, -1, 4])
+	#plt.show()
+	savemyplot("Color_ApparentMagnitude_"+str(z_mean))
+	plt.close()
+
+	
+	DL = cosmology.luminosity_distance(t['zb_1'], cosmology.Planck13).to(units.pc)/units.pc
+	absmag = t[filter2] - 5.*np.log10(DL) + 5.
+
+	# Color vs Absolute Magnitude
+	fig = plt.figure()
+	plt.title("Color vs Absolute Magnitude @ z~"+str(z_mean))
+	plt.xlabel("M "+filter2)
+	plt.ylabel(filter1+" - "+filter2)
+	plt.hist2d(absmag, t[filter1] - t[filter2], bins = 50, range=np.array([(-26, -12), (-1, 4)]), norm=LogNorm())
+	plt.axis([-12, -26, -1, 4])
+	#plt.show()
+	savemyplot("Color_AbsoluteMagnitude_"+str(z_mean))
+	plt.close()
+	
+
+	# Stellar Mass distribution per sub-sample
+	fig = plt.figure()
+	plt.title("Stellar Mass distribution for sub-sample z_mean="+str(z_mean))
+	plt.xlabel("Stell_Mass_1")
+	plt.hist(t['Stell_Mass_1'], bins = 100)
+	#plt.show()
+	savemyplot("Stell_Mass_distribution_"+str(z_mean))
+	plt.close()
+
+
+	'''
+	# z distribution sub-sample
+	fig = plt.figure()
+	plt.title("z distribution for sub-sample z_mean="+str(z_mean))
+	plt.xlabel("z")
+	plt.hist(t['zb_1'], bins = 20)
+	#plt.show()
+	savemyplot("z_distribution_"+str(z_mean))
+	plt.close()
+	'''
+
+
+	
+	
+	
+
+sys.exit()
 
 nspec = 10
 magspec = np.array(t[filters['Filter'][:].tolist()][nspec]).tolist()
