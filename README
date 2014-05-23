@@ -1,2 +1,8 @@
-Series of codes for Alhambra catalogues.
-LLT
+This repository contains a series of codes for reading and analyzing Alhambra catalogues.
+
+Copyright: Loic Le Tiran, 2014
+loic.le-tiran@obspm.fr
+licence : GNU GPL v3
+
+These catalogues are hosted on: https://cloud.iaa.csic.es/alhambra/catalogues/
+To use the catalogues, see Molino 2013 (soon 2014): http://arxiv.org/abs/1306.4968 (pdf: http://arxiv.org/pdf/1306.4968v2)

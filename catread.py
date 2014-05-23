@@ -1,5 +1,5 @@
 ''' File: catread.py '''
-''' Copyrights: Loic Le Tiran, 2014 '''
+''' Copyright: Loic Le Tiran, 2014 '''
 ''' loic.le-tiran@obspm.fr '''
 ''' licence : GNU GPL v3 '''
 
