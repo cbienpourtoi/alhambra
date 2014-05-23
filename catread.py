@@ -1,7 +1,7 @@
 ''' File: catread.py '''
 ''' Copyright: Loic Le Tiran, 2014 '''
-''' loic.le-tiran@obspm.fr '''
-''' licence : GNU GPL v3 '''
+''' Contact: loic.le-tiran@obspm.fr '''
+''' Licence: GNU GPL v3 '''
 
 ''' Description: '''
 ''' Tool for reading catalogs from the Alhambra Survey '''
