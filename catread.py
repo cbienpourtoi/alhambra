@@ -1,4 +1,10 @@
-''' Tool forreading catalogs from the Alhambra Survey '''
+''' File: catread.py '''
+''' Copyrights: Loic Le Tiran, 2014 '''
+''' loic.le-tiran@obspm.fr '''
+''' licence : GNU GPL v3 '''
+
+''' Description: '''
+''' Tool for reading catalogs from the Alhambra Survey '''
 ''' These catalogues are hosted on: https://cloud.iaa.csic.es/alhambra/catalogues/ '''
 ''' To use the catalogues, see Molino 2013 (soon 2014): http://arxiv.org/abs/1306.4968 (pdf: http://arxiv.org/pdf/1306.4968v2) '''
 
@@ -63,9 +69,9 @@ if create_master_catalog:
 
 
 	# Values of the cuts:
-	Stellar_Flag_Cut = 0.51
+	Stellar_Flag_Cut = 0.7
 	Odds_1_Cut = 0.2
-	irms_OPT_Flag_Cut = 1
+	irms_OPT_Flag_Cut = 3
 	irms_NIR_Flag_Cut = 1
 	photoflag_Cut = 1
 
@@ -407,6 +413,9 @@ plt.close()
 
 
 t_keep = t;
+i_mass = 0
+ntot = 0.
+nlowmass = 0.
 
 # Mean z
 for z_mean in (np.arange(15)+1.)/10.:
@@ -516,6 +525,80 @@ for z_mean in (np.arange(15)+1.)/10.:
 	#plt.show()
 	savemyplot("Stell_Mass_distribution_"+str(z_mean))
 	plt.close()
+
+
+	# Stellar_Flag vs Stellar Mass
+	fig = plt.figure()
+	plt.title("Stellar_Flag vs Stellar Mass @ z~"+str(z_mean))
+	plt.xlabel("Stellar Mass")
+	plt.ylabel("Stellar_Flag")
+	#plt.xlim([6,12])
+	#plt.ylim([-1,4])
+	#plt.hist(t['F675W'], bins = 50)
+	plt.hist2d(t['Stell_Mass_1'], t['Stellar_Flag'], bins = 50, norm=LogNorm(), range=np.array([(6, 12), (-0.05, 0.8)]))
+	#plt.hist(t[l1] - t[l2], bins = 200)
+	#plt.hist(t['Stell_Mass_1'], bins = 50)
+	#plt.plot(t['F458W'], t['F675W'], '.')
+	#plt.show()
+	savemyplot("Stellar_Flag_StellarMass_"+str(z_mean))
+	plt.close()
+
+
+	smass_limits = [6.2, 7.2, 7.5, 7.7, 8., 8.2, 8.4, 8.4,8.6, 8.7, 8.8, 8.9, 9., 9., 9.2]
+	thislimit = smass_limits[i_mass]
+	
+	t_temp=t
+	t = t[:][np.where(t['Stellar_Flag']==0.5)]
+	# Stellar Mass distribution per sub-sample for Stellar_Flag = 0.5
+	fig = plt.figure()
+	plt.title("Stellar Mass distribution for Stellar_Flag=0.5 sub-sample z_mean="+str(z_mean))
+	plt.xlabel("Stell_Mass_1")
+	plt.hist(t['Stell_Mass_1'], bins = 100)
+	plt.plot([thislimit,thislimit], [0,10], '-')
+	#plt.show()
+	savemyplot("Stell_Mass_distribution_Stellar_Flag_05_"+str(z_mean))
+	plt.close()
+	
+	print "There are "+str( len(t[:][np.where(t['Stell_Mass_1']<thislimit)]) ) +" objects with Stell_Mass_1 <"+str(thislimit)+" at z="+str(z_mean)
+	print "There are "+str( len(t[:][np.where(t['Stell_Mass_1']>thislimit)]) ) +" objects with Stell_Mass_1 >"+str(thislimit)+" at z="+str(z_mean)
+
+	ntot = ntot + len(t[:][np.where(t['Stell_Mass_1']>thislimit)])
+	nlowmass = nlowmass + len(t[:][np.where(t['Stell_Mass_1']<thislimit)])
+	
+	print "ratio for all z<"+str(z_mean)+" : "+str(nlowmass/ntot)
+
+
+	# Odds vs Stellar Mass
+	fig = plt.figure()
+	plt.title("Odds vs Stellar Mass @ z~"+str(z_mean))
+	plt.xlabel("Stellar Mass")
+	plt.ylabel("Odds")
+	#plt.xlim([6,12])
+	#plt.ylim([-1,4])
+	#plt.hist(t['F675W'], bins = 50)
+	plt.hist2d(t['Stell_Mass_1'], t['Odds_1'], bins = 50, norm=LogNorm(), range=np.array([(6, 12), (-0.05, 0.8)]))
+	#plt.hist(t[l1] - t[l2], bins = 200)
+	#plt.hist(t['Stell_Mass_1'], bins = 50)
+	#plt.plot(t['F458W'], t['F675W'], '.')
+	#plt.show()
+	savemyplot("Odds_StellarMass_"+str(z_mean))
+	plt.close()
+
+	
+	i_mass = i_mass + 1
+
+
+	t=t_temp
+	t = t[:][np.where(t['Stellar_Flag']!=0.5)]
+	# Stellar Mass distribution per sub-sample for Stellar_Flag != 0.5
+	fig = plt.figure()
+	plt.title("Stellar Mass distribution for Stellar_Flag!=0.5 sub-sample z_mean="+str(z_mean))
+	plt.xlabel("Stell_Mass_1")
+	plt.hist(t['Stell_Mass_1'], bins = 100)
+	#plt.show()
+	savemyplot("Stell_Mass_distribution_Stellar_Flag_not05_"+str(z_mean))
+	plt.close()
+
 
 
 	'''
