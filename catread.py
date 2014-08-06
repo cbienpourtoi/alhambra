@@ -13,7 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.table import Table, join
 from astropy.io import ascii
-from astropy import cosmology
+#from astropy import cosmology # Astropy version 0.3
+from astropy.cosmology import Planck13 as cosmo # Astropy version 0.4
 from astropy import units
 import scipy
 from matplotlib.colors import LogNorm
@@ -502,7 +503,8 @@ for z_mean in (np.arange(15)+1.)/10.:
 	plt.close()
 
 	
-	DL = cosmology.luminosity_distance(t['zb_1'], cosmology.Planck13).to(units.pc)/units.pc
+	#DL = cosmology.luminosity_distance(t['zb_1'], cosmology.Planck13).to(units.pc)/units.pc
+	DL = cosmo.luminosity_distance(t['zb_1']).to(units.pc)/units.pc
 	absmag = t[filter2] - 5.*np.log10(DL) + 5.
 
 	# Color vs Absolute Magnitude
