@@ -23,7 +23,7 @@ import os
 
 
 plot_extension = ".png"
-plot_directory = "../plots/"
+plot_directory = "plots/"
 def savemyplot(name):
 	fig.savefig(plot_directory+name+plot_extension)
 	return
@@ -53,7 +53,7 @@ create_master_catalog = False
 
 # Name of Master catalog (containing all sorted infos from all alhambra catalogs):
 master_catalog_name = "alhambra.Master.ColorProBPZ.cat"
-master_catalog_directory = "../data/catalogs/master_catalogs/"
+master_catalog_directory = "data/catalogs/master_catalogs/"
 
 # Creates the Master catalog here:
 if create_master_catalog:
@@ -86,9 +86,9 @@ if create_master_catalog:
 	# I truncate the first line of my catalogs until the bug is corrected.
 	# Truncated catalog name has a "first_col_truncated." prefix, and is in 
 	# a different directory "/first_col_truncated/".
-	catalogs_directory = '../data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
+	catalogs_directory = 'data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
 	# When the bug is solved,use this line:
-	#catalogs_directory = '../data/catalogs/original_catalogs/'
+	#catalogs_directory = 'data/catalogs/original_catalogs/'
 
 	catalog_names = glob.glob(catalogs_directory+'alhambra.*.ColorProBPZ.cat')
 	print "I have found "+str(len(catalog_names))+" catalogues."
