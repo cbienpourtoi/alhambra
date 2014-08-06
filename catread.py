@@ -69,12 +69,20 @@ if create_master_catalog:
 	study_z = False
 
 
-	# Values of the cuts:
+	# Values of the cuts: # from mail Alberto 24/7/14
 	Stellar_Flag_Cut = 0.7
 	Odds_1_Cut = 0.2
-	irms_OPT_Flag_Cut = 3
-	irms_NIR_Flag_Cut = 1
+	irms_OPT_Flag_Cut = 10
+	irms_NIR_Flag_Cut = 2
 	photoflag_Cut = 1
+	Chi2_Cut = 500
+
+	# OLD Values of the cuts:
+	#Stellar_Flag_Cut = 0.7
+	#Odds_1_Cut = 0.2
+	#irms_OPT_Flag_Cut = 3
+	#irms_NIR_Flag_Cut = 1
+	#photoflag_Cut = 1
 
 
 	# Expected number of Alhambra catalogues
@@ -304,6 +312,14 @@ if create_master_catalog:
 
 		t = t[:][np.where(t['irms_NIR_Flag']<irms_NIR_Flag_Cut)]
 		print "Remains   "+ str(len(t))+" elements with less than "+str(irms_NIR_Flag_Cut)+ " NIR bands in which there is no detection"
+
+	
+		
+		# Chi2 from mail Alberto 24/7/14
+		t = t[:][np.where(t['Chi2']<Chi2_Cut)]
+		print "Remains   "+ str(len(t))+" elements with Chi2 being less than "+str(Chi2_Cut)
+
+		
 
 
 		# photoflag
