@@ -49,7 +49,7 @@ else:
 
 # Will create a Master catalog from the alhambra catalogs if True
 # If False, will use the master catalog file created previously.
-create_master_catalog = False
+create_master_catalog = True
 
 
 # Name of Master catalog (containing all sorted infos from all alhambra catalogs):
@@ -80,6 +80,8 @@ if create_master_catalog:
 	# Expected number of Alhambra catalogues
 	exp_numb_cats = 48
 
+
+	# NB the 6/8/14: This bug has been corrected since astropy 0.4
 	# Due to a bug in astropy.table (see :
 	# http://stackoverflow.com/questions/22617428/overflowerror-python-int-too-large-to-convert-to-c-long-with-astropy-table
 	# and
@@ -87,9 +89,9 @@ if create_master_catalog:
 	# I truncate the first line of my catalogs until the bug is corrected.
 	# Truncated catalog name has a "first_col_truncated." prefix, and is in 
 	# a different directory "/first_col_truncated/".
-	catalogs_directory = 'data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
+	#catalogs_directory = 'data/catalogs/first_col_truncated/first_col_truncated.' #this line contains the repertory AND the prefix.
 	# When the bug is solved,use this line:
-	#catalogs_directory = 'data/catalogs/original_catalogs/'
+	catalogs_directory = 'data/catalogs/original_catalogs/'
 
 	catalog_names = glob.glob(catalogs_directory+'alhambra.*.ColorProBPZ.cat')
 	print "I have found "+str(len(catalog_names))+" catalogues."
