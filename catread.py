@@ -396,6 +396,7 @@ if create_master_catalog:
 
 	# Writes the Master catalog:
 	ascii.write(t, master_catalog_directory + master_catalog_name)
+	np.save(master_catalog_directory + master_catalog_name + ".npy", t)
 		
 # Opens the Master catalog if we are not in master catalog creation mode:
 else :
