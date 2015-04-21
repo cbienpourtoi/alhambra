@@ -77,33 +77,10 @@ if create_master_catalog:
 	np.save(master_catalog_directory + master_catalog_name + ".npy", t)
 
 
-
-""" OUTDATED
-create_arrays = False
-if create_arrays is True: 
-
-	t = np.load("data/catalogs/master_catalogs/alhambra.Master.ColorProBPZ.cat.npy")
-
-	x = []
-	for i in t:
-		x.append(list(i))
-	x = np.array(x)
-
-	x = x[:,1:] # Delete the IDs
-
-	stell = x[:,9] # From Sextractor
-	stell_flag = x[:,9] # From Molino 
-
-	x = np.delete(x, 9, 1)
-
-	np.save("ml/master_np_X.npy", x)
-	np.save("ml/master_np_y.npy", stell)
-"""
-
 create_arrays_long = True
 if create_arrays_long is True: 
 
-	number_lines_to_read = 10000
+	number_lines_to_read = 100000
 	t = Table.read("data/catalogs/master_catalogs/alhambra.Master.ALLDATA.cat", format='ascii', data_end=number_lines_to_read)
 
 	y_stell_sex = t["stell"]
@@ -146,15 +123,24 @@ for i in ymol_sure:
 #plt.ion()
 #plt.close()
 
+# Will learn from the even positions:
 X_sure_learn = X_sure[0::2]
 ymol_learn = ymol_bool[0::2]
 
+# Sill predict the odd positions
 X_sure_target = X_sure[1::2]
 y_target = ymol_bool[1::2]
 
+# ML
 model = LogisticRegression(C=1.)
 model.fit(X_sure_learn, ymol_learn)
 y_prediction = model.predict(X_sure_target)
 
+# Results:
+print "total number of objects to predict: "+ str(len(y_target))
+N_correct = len(np.where(y_prediction - y_target == 0)[0])
+print "I have predicted correctly "+str(N_correct)+" objects"
+N_error = len(np.where(y_prediction - y_target != 0)[0])
+print "there are " + str(N_error) + " errors (" +str(float(N_error)/float(N_correct)*100.)+"%)"
 
 
