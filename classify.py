@@ -83,6 +83,61 @@ if create_arrays_long is True:
 	number_lines_to_read = 100000
 	t = Table.read("data/catalogs/master_catalogs/alhambra.Master.ALLDATA.cat", format='ascii', data_end=number_lines_to_read)
 
+	########
+	# Let's begin by looking a bit at the data
+	
+	F814W_limit = 22.5 # The limit over which the Stellar_Flag is always 0.5
+	t_faint = t[np.where(t["F814W"]>=F814W_limit)]
+	t_bright = t[np.where(t["F814W"]<F814W_limit)]
+	if np.where(t_faint["Stellar_Flag"] != 0.5)[0].size == 0: print "Sanity check OK: all faint sources have Stellar_Flag = 0.5"
+	if np.where(t_bright["Stellar_Flag"] == 0.5)[0].size != 0: print "Some bright sources also have Stellar_Flag = 0.5"
+	# Shows that some random values of the bright sample can also have Stellar_Flag = 0.5 (which is OK)
+	# print t_bright[np.where(t_bright["Stellar_Flag"] == 0.5)[0]]["F814W"] # Shows teh values of F814W for these bright objects with Stellar_Flag = 0.5
+
+	plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+	plt.hist(t_bright["Stellar_Flag"], bins=100)
+	plt.title("Bright objects Stellar_Flag distribution")
+	#plt.show()
+	plt.close()
+
+	# Gets only the objects with Stellar_Flag<0.1 or Stellar_Flag>0.9: the "sure" catalog
+	limit = 0.1
+	center = 0.5
+	t_bright_sure = t_bright[np.where(np.abs(t_bright["Stellar_Flag"]-center)>center-limit)]
+
+	# Sanity check:
+	plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+	plt.hist(t_bright_sure["Stellar_Flag"], bins=100)
+	plt.title("Bright objects Stellar_Flag distribution, only for very certain objects")
+	#plt.show()
+	plt.close()
+
+	# Selects stars or galaxies from the "sure" catalog
+	t_bright_sure_star = t_bright_sure[np.where(t_bright_sure["Stellar_Flag"]>1.-limit)]
+	t_bright_sure_gal = t_bright_sure[np.where(t_bright_sure["Stellar_Flag"]<limit)]
+
+	# Sanity check:
+	plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+	plt.hist(t_bright_sure_star["Stellar_Flag"], label = "star")
+	plt.hist(t_bright_sure_gal["Stellar_Flag"], label = "galaxy")
+	plt.title("Bright objects Stellar_Flag distribution for very certain stars vs galaxies")
+	plt.legend()
+	plt.show()
+	plt.close()
+
+	
+	print np.mean(t_bright_sure_star)
+
+
+	
+	sys.exit()
+
+
+
+
+
+
+
 	y_stell_sex = t["stell"]
 	y_stell_mol = t["Stellar_Flag"]
 
@@ -95,14 +150,31 @@ if create_arrays_long is True:
 		X.append(list(i))
 	X = np.array(X)
 
+	zb_1 = t["zb_1"]
+	Stell_Mass_1 = t["Stell_Mass_1"]
+
 	np.save("ml/master_np_X.npy", X)
 	np.save("ml/master_np_y_stell_sex.npy", y_stell_sex)
 	np.save("ml/master_np_y_stell_mol.npy", y_stell_mol)
+	np.save("ml/master_zb_1.npy", zb_1)
+	np.save("ml/master_Stell_Mass_1.npy", Stell_Mass_1)
 
 
 X = np.load("ml/master_np_X.npy") # the matrix
 ymol = np.load("ml/master_np_y_stell_mol.npy") # The stellaricity from Molino
 ysex = np.load("ml/master_np_y_stell_sex.npy") # The stellaricity from Bertin's sextractor
+zb_1 = np.load("ml/master_zb_1.npy") # z
+Stell_Mass_1 = np.load("ml/master_Stell_Mass_1.npy") # stellar mass
+
+
+
+########
+# Test on the known part of the sample:
+# We try only on "good" objects: Stellar_Flag>0.9 and Stellar_Flag<0.1
+# half of this sample is the learning sample
+# half is the target
+# Target is predicted with 1% error (for a sample of 1000 "good" objects)
+
 
 limit = 0.1
 center = 0.5
@@ -140,7 +212,46 @@ y_prediction = model.predict(X_sure_target)
 print "total number of objects to predict: "+ str(len(y_target))
 N_correct = len(np.where(y_prediction - y_target == 0)[0])
 print "I have predicted correctly "+str(N_correct)+" objects"
-N_error = len(np.where(y_prediction - y_target != 0)[0])
+error_places = np.where(y_prediction - y_target != 0)[0]
+print error_places
+N_error = len(error_places)
 print "there are " + str(N_error) + " errors (" +str(float(N_error)/float(N_correct)*100.)+"%)"
 
 
+smsure = Stell_Mass_1[ymol_unsure_mask]
+smsure_target = smsure[1::2]
+print smsure_target[error_places]
+
+
+
+
+Stell_Mass_1_z08 = Stell_Mass_1[np.where(np.abs(zb_1-0.8)<0.05)[0]]
+
+
+
+tz = t[np.where(np.abs(t["zb_1"]-0.8)<0.05)[0]]
+plt.hist(tz['Stell_Mass_1'], bins = 100)
+plt.hist(Stell_Mass_1_z08_sure, bins = 100, alpha = 0.6)
+plt.show()
+
+sys.exit()
+
+########
+# Now we use "good" objects to predict Stellar_Flag = 0.5 objects:
+
+model = LogisticRegression(C=1.)
+model.fit(X_sure, ymol_bool) # Fit on all objects where we know the stellaricity very well (Stellar_Flag>0.9 and Stellar_Flag<0.1)
+
+faint = np.where(ymol==0.5)[0]
+print "Total number of objects: " + str(len(ymol))
+print "Number of faint objects: " + str(len(faint))
+X_faint = X[faint, :]
+
+y_faint_target = model.predict(X_faint)
+faint_star = np.where(y_faint_target == 1)[0]
+faint_gal = np.where(y_faint_target == -1)[0]
+
+print len(faint_star)
+print len(faint_gal)
+
+#plt.hist()
