@@ -11,6 +11,7 @@ import sys
 import os
 import glob
 from astropy.io import ascii
+from astroML.plotting import hist
 
 # Catalog definitions:
 # 'stell' corresponds to SExtractor stellaricity
@@ -122,11 +123,34 @@ if create_arrays_long is True:
 	plt.hist(t_bright_sure_gal["Stellar_Flag"], label = "galaxy")
 	plt.title("Bright objects Stellar_Flag distribution for very certain stars vs galaxies")
 	plt.legend()
-	plt.show()
+	#plt.show()
 	plt.close()
 
-	
-	print np.mean(t_bright_sure_star)
+	#means = np.array([])
+	#stds = np.array([])
+	for c in t.columns:
+		plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+		plt.title("Distribution variable: "+c)
+		hist(t_bright_sure_star[c], label = "star", alpha = 0.5, bins='blocks', normed = True)
+		hist(t_bright_sure_gal[c], label = "gal", alpha = 0.5, bins='blocks', normed = True)
+		plt.legend()
+		plt.show()
+		plt.close()
+		
+		
+		#means_star = np.append(means, np.mean(t_bright_sure_star[c]))
+		#stds_gal = np.append(stds, np.std(t_bright_sure_star[c]))
+		
+	# Means and stds:
+	plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+	plt.title("Means and stds for all variables")
+	plt.subplot(211)
+	plt.plot(means, label = "means")
+	plt.subplot(212)
+	plt.plot(stds, label = "stds")
+	plt.legend()
+	#plt.show()
+	plt.close()
 
 
 	
