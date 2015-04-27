@@ -12,6 +12,7 @@ import os
 import glob
 from astropy.io import ascii
 from astroML.plotting import hist
+from sklearn.decomposition import PCA
 
 # Catalog definitions:
 # 'stell' corresponds to SExtractor stellaricity
@@ -126,32 +127,20 @@ if create_arrays_long is True:
 	#plt.show()
 	plt.close()
 
-	#means = np.array([])
-	#stds = np.array([])
 	for c in t.columns:
 		plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
 		plt.title("Distribution variable: "+c)
 		hist(t_bright_sure_star[c], label = "star", alpha = 0.5, bins='blocks', normed = True)
 		hist(t_bright_sure_gal[c], label = "gal", alpha = 0.5, bins='blocks', normed = True)
 		plt.legend()
-		plt.show()
+		#plt.show()
 		plt.close()
 		
-		
-		#means_star = np.append(means, np.mean(t_bright_sure_star[c]))
-		#stds_gal = np.append(stds, np.std(t_bright_sure_star[c]))
-		
-	# Means and stds:
-	plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
-	plt.title("Means and stds for all variables")
-	plt.subplot(211)
-	plt.plot(means, label = "means")
-	plt.subplot(212)
-	plt.plot(stds, label = "stds")
-	plt.legend()
-	#plt.show()
-	plt.close()
 
+	print "begins PCA analysis"
+	pca = PCA(n_components=5)
+	pca.fit(t_bright_sure)
+	print(pca.explained_variance_ratio_) 
 
 	
 	sys.exit()
