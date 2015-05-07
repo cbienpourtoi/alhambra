@@ -17,6 +17,11 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column
+from astropy.cosmology import Planck13 as cosmo
+from astropy import units as u
+from astropy.cosmology import z_at_value
+from astropy.io import ascii
+
 
 def main():
     mastername = '/home/loic/Projects/alhambra/data/catalogs/' \
@@ -76,6 +81,11 @@ def plot_GV_zfixed(catalog):
 
     slicemass = slice_mass(slice, mass, dmass)
 
+    densities = get_densities(slicemass)
+
+    ascii.write(densities, "densities.txt")
+
+
     #Red, Green, Blue limits:
     BGlim = 1.6
     GRlim = 1.9
@@ -102,7 +112,7 @@ def plot_GV_zfixed(catalog):
 
 def slice_z(catalog, z, dz):
     """ select a slice in catalog from z-dz to z+dz """
-    slice = catalog[np.where(np.abs(catalog["z_ml"]-z) < dz)]
+    slice = catalog[np.where(np.abs(catalog["zb_1"]-z) < dz)]
     return slice
 
 def slice_mass(catalog, mass, dmass):
@@ -121,7 +131,49 @@ def select_color(slice, BmRmin = -999, BmRmax = 999):
     slice = slice[np.where(slice["BmR"]<BmRmax)]
     return slice
 
+def get_densities(slice):
+    """Measures the density around each galaxy in the slice"""
 
+    radius = 5.*u.Mpc
+
+    densities = np.array([])
+
+    for galaxy in slice:
+        z = galaxy["zb_1"]
+        RA = galaxy["RA"]
+        Dec = galaxy["Dec"]
+
+        Mpc_per_deg = cosmo.kpc_comoving_per_arcmin(z).to(u.Mpc/u.deg)
+        dRA = radius / Mpc_per_deg
+        dDec = dRA
+
+        slicetmp = slice
+
+        slicetmp = slice_RA(slicetmp, RA, dRA)
+        slicetmp = slice_Dec(slicetmp, Dec, dDec)
+        slicetmp = slice_z_cosmo(slicetmp, z, radius)
+        densities = np.append(densities, len(slicetmp)-1)
+
+    slice = slice.add_column(Column(data=densities, name="densities"))
+    return slice
+
+def slice_z_cosmo(slice, z, radius):
+    """Slices in redshift considering a distance to cut"""
+    zmax = z_at_value(cosmo.comoving_distance, cosmo.comoving_distance(z) + radius)
+    zmin = z_at_value(cosmo.comoving_distance, cosmo.comoving_distance(z) - radius)
+    slice = slice[np.where(slice["zb_1"] < zmax)]
+    slice = slice[np.where(slice["zb_1"] > zmin)]
+    return slice
+
+def slice_RA(slice, RA, dRA):
+    """ In a table, gets only RA inside RA-dRA, and RA+dRA """
+    slice = slice[np.where(np.abs(slice["RA"]-RA)*u.deg < dRA)]
+    return slice
+
+def slice_Dec(slice, Dec, dDec):
+    """ In a table, gets only Dec inside Dec-dDec, and Dec+dDec """
+    slice = slice[np.where(np.abs(slice["Dec"]-Dec)*u.deg < dDec)]
+    return slice
 
 
 if __name__ == '__main__':
