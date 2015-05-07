@@ -16,12 +16,13 @@ __status__ = "Development"
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from astropy.table import Table
+from astropy.table import Table, Column
 
 def main():
     mastername = '/home/loic/Projects/alhambra/data/catalogs/' \
                'master_catalogs/alhambra.Master.ColorProBPZ.cat.npy'
                # Numpy format of the master catalog
+                # It contains already a pre-classification of galaxies
     catalog = read_catalog(mastername)
 
     plot_GV_zfixed(catalog)
@@ -36,7 +37,7 @@ def read_catalog(mastername):
 
     # Test mode? If true, only a small number of values will be
     # red from the master catalog
-    test_mode = False
+    test_mode = True
     if test_mode:
         number_lines_to_read = 1000
     else:
@@ -64,17 +65,45 @@ def plot_GV_zfixed(catalog):
 
     """
 
+    filterB = "F644W"
+    filterR = "J"
+
 
     slice = slice_z(catalog, 0.8, 0.05)
-    slice = clean_filter(slice, "F644W")
-    slice = clean_filter(slice, "J")
+    slice = clean_filter(slice, filterB)
+    slice = clean_filter(slice, filterR)
 
+    BmR = slice[filterB] - slice[filterR]
 
-    NUVminusR = slice["F644W"] - slice["J"]
+    slice = Table(slice)
+    slice.add_column(Column(data=BmR, name='BmR'))
+
+    # selection in stellar mass:
+    mass = 10.
+    dmass = 0.2
+
+    slicemass = slice_mass(slice, mass, dmass)
+
+    #Red, Green, Blue limits:
+    BGlim = 1.6
+    GRlim = 1.9
+    red = select_color(slicemass, GRlim)
+    green = select_color(slicemass, BGlim, GRlim)
+    blue = select_color(slicemass, -999, BGlim)
+
+    print "Number of galaxies in the redshift slice: "+str(len(slice))
+    print "Number of galaxies in the mass bin: "+str(len(slicemass))
+    print "Number of blue galaxies: "+str(len(blue))
+    print "Number of green galaxies: "+str(len(green))
+    print "Number of red galaxies: "+str(len(red))
 
     print len(slice)
 
-    plt.hist2d(slice["Stell_Mass_1"], NUVminusR, bins=100)
+    plt.hist2d(slice["Stell_Mass_1"], slice['BmR'], bins=100)
+    plt.axvline(mass-dmass, color='w')
+    plt.axvline(mass+dmass, color='w')
+    plt.axhline(1.9, color='w')
+    plt.axhline(1.6, color='w')
     plt.show()
 
 
@@ -84,10 +113,22 @@ def slice_z(catalog, z, dz):
     slice = catalog[np.where(np.abs(catalog["z_ml"]-z) < dz)]
     return slice
 
+def slice_mass(catalog, mass, dmass):
+    """ select a slice in catalog from stelar mass-dmass to mass+dmass """
+    slice = catalog[np.where(np.abs(catalog["Stell_Mass_1"]-mass) < dmass)]
+    return slice
+
 def clean_filter(slice, filter):
     """ deletes the values set at 99 for the indicated filter """
     slice = slice[np.where(np.abs(slice[filter]) != 99.0)]
     return slice
+
+def select_color(slice, BmRmin = -999, BmRmax = 999):
+    """ Selects only the red, blue, or green galaxies """
+    slice = slice[np.where(slice["BmR"]>BmRmin)]
+    slice = slice[np.where(slice["BmR"]<BmRmax)]
+    return slice
+
 
 
 
