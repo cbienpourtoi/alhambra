@@ -20,6 +20,24 @@ from sklearn.decomposition import PCA
 #    See Molino's paper, section "Star/galaxy separation".
 
 
+def table_cleaner(table):
+
+	table.remove_column('ID')
+	table.remove_column('Field')
+	table.remove_column('Pointing')
+	table.remove_column('CCD')
+	table.remove_column('RA')
+	table.remove_column('Dec')
+	table.remove_column('x')
+	table.remove_column('y')
+	table.remove_column('photoflag')
+	table.remove_column('nfobs')
+	table.remove_column('Satur_Flag')
+	table.remove_column('DupliDet_Flag')
+
+	return table
+
+
 
 create_master_catalog = False
 master_catalog_name = "alhambra.Master.ALLDATA.cat"
@@ -82,7 +100,7 @@ if create_master_catalog:
 create_arrays_long = True
 if create_arrays_long is True: 
 
-	number_lines_to_read = 100000
+	number_lines_to_read = 10000
 	t = Table.read("data/catalogs/master_catalogs/alhambra.Master.ALLDATA.cat", format='ascii', data_end=number_lines_to_read)
 
 	########
@@ -127,20 +145,38 @@ if create_arrays_long is True:
 	#plt.show()
 	plt.close()
 
-	for c in t.columns:
-		plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
-		plt.title("Distribution variable: "+c)
-		hist(t_bright_sure_star[c], label = "star", alpha = 0.5, bins='blocks', normed = True)
-		hist(t_bright_sure_gal[c], label = "gal", alpha = 0.5, bins='blocks', normed = True)
-		plt.legend()
-		#plt.show()
-		plt.close()
+	# Plots the hists of the different variables:
+	make_all_plots = False
+	if make_all_plots == True:
+		for c in t.columns:
+			plt.figure(figsize=(10,10), facecolor='w', edgecolor='k')
+			plt.title("Distribution variable: "+c)
+			hist(t_bright_sure_star[c], label = "star", alpha = 0.5, bins='blocks', normed = True)
+			hist(t_bright_sure_gal[c], label = "gal", alpha = 0.5, bins='blocks', normed = True)
+			plt.legend()
+			#plt.show()
+			plt.close()
 		
+	sys.exit()
+
+	#
+	# PCA
+	#
 
 	print "begins PCA analysis"
-	pca = PCA(n_components=5)
-	pca.fit(t_bright_sure)
-	print(pca.explained_variance_ratio_) 
+	pca = PCA()
+	
+	t_bright_sure = table_cleaner(t_bright_sure)
+
+	print t_bright_sure
+	
+	X = []
+	for i in t:
+		X.append(list(t_bright_sure))
+	X = np.array(X)
+
+	#pca.fit(X)
+	#print(pca.explained_variance_ratio_) 
 
 	
 	sys.exit()
