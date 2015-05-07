@@ -35,14 +35,6 @@ def read_catalog(mastername):
     with a number of cuts (stellaricity etc...)
     """
 
-    # Test mode? If true, only a small number of values will be
-    # red from the master catalog
-    test_mode = True
-    if test_mode:
-        number_lines_to_read = 1000
-    else:
-        number_lines_to_read = -1
-
     try:
         catalog = np.load(mastername)
     except:
