@@ -64,12 +64,13 @@ def plot_GV_zfixed(catalog):
 
     """
 
+
     slice = slice_z(catalog, 0.8, 0.05)
-    slice = clean_filter(slice, "F954W")
+    slice = clean_filter(slice, "F644W")
     slice = clean_filter(slice, "J")
 
 
-    NUVminusR = slice["F954W"] - slice["J"]
+    NUVminusR = slice["F644W"] - slice["J"]
 
     print len(slice)
 
