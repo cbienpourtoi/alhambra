@@ -13,7 +13,7 @@ __maintainer__ = "Loic Le Tiran"
 __email__ = "loic.letiran@gmail.com"
 __status__ = "Development"
 
-import sys
+import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column
@@ -21,7 +21,7 @@ from astropy.cosmology import Planck13 as cosmo
 from astropy import units as u
 from astropy.cosmology import z_at_value
 from astropy.io import ascii
-
+import datetime
 
 def main():
     mastername = '/home/loic/Projects/alhambra/data/catalogs/' \
@@ -41,10 +41,14 @@ def read_catalog(mastername):
     """
 
     try:
-        catalog = np.load(mastername)
+        catalog = Table(np.load(mastername))
     except:
         print "Cannot read the catalog", sys.exc_info()[0]
         raise
+
+    test_mode = False
+    if test_mode:
+        catalog = catalog[:1000]
 
     return catalog
 
@@ -65,6 +69,9 @@ def plot_GV_zfixed(catalog):
     filterB = "F644W"
     filterR = "J"
 
+    #####################
+    # Slice to analyse: #
+    #####################
 
     slice = slice_z(catalog, 0.8, 0.05)
     slice = clean_filter(slice, filterB)
@@ -72,7 +79,6 @@ def plot_GV_zfixed(catalog):
 
     BmR = slice[filterB] - slice[filterR]
 
-    slice = Table(slice)
     slice.add_column(Column(data=BmR, name='BmR'))
 
     # selection in stellar mass:
@@ -81,17 +87,40 @@ def plot_GV_zfixed(catalog):
 
     slicemass = slice_mass(slice, mass, dmass)
 
-    densities = get_densities(slicemass)
 
-    ascii.write(densities, "densities.txt")
+    #####################
+    #   Larger slice :  #
+    #####################
+    larger_slice = slice_z(catalog, 0.8, 0.1)
+    massmin_large = 8.4
+    larger_slice = slice_param(catalog, "Stell_Mass_1", massmin_large, 10000.)
+
+    #############
+    # Densities #
+    #############
+    envdir = "environment/"
+    if not os.path.exists(envdir):
+        os.mkdir(envdir)
+
+    do_measurement = True
+    if do_measurement:
+        # Measures the densities in environment
+        densities = get_densities(slicemass, larger_slice)
+        # Saves the densities
+        print densities
+        np.save(envdir+"densities.npy", densities)
+        ascii.write(densities, envdir+"densities.txt")
+    else:
+        densities = Table(np.load(envdir+"densities.npy"))
+
 
 
     #Red, Green, Blue limits:
     BGlim = 1.6
     GRlim = 1.9
-    red = select_color(slicemass, GRlim)
-    green = select_color(slicemass, BGlim, GRlim)
-    blue = select_color(slicemass, -999, BGlim)
+    red = select_color(densities, GRlim)
+    green = select_color(densities, BGlim, GRlim)
+    blue = select_color(densities, -999, BGlim)
 
     print "Number of galaxies in the redshift slice: "+str(len(slice))
     print "Number of galaxies in the mass bin: "+str(len(slicemass))
@@ -99,15 +128,28 @@ def plot_GV_zfixed(catalog):
     print "Number of green galaxies: "+str(len(green))
     print "Number of red galaxies: "+str(len(red))
 
-    print len(slice)
+    print "Mean blue env objects: "+str(np.mean(blue["densities"]))
+    print "Mean red env objects: "+str(np.mean(red["densities"]))
+    print "Mean green env objects: "+str(np.mean(green["densities"]))
+
+
+    plt.hist(blue["densities"], color='b', label="blue", normed=True, alpha=.3, range=(0,10), histtype='step')
+    plt.hist(red["densities"], color='r', label="red", normed=True, alpha=.3, range=(0,10), histtype='step')
+    plt.hist(green["densities"], color='g', label="green", normed=True, alpha=.3, range=(0,10), histtype='step')
+    plt.legend()
+    plt.show()
+
+    sys.exit()
 
     plt.hist2d(slice["Stell_Mass_1"], slice['BmR'], bins=100)
     plt.axvline(mass-dmass, color='w')
     plt.axvline(mass+dmass, color='w')
-    plt.axhline(1.9, color='w')
-    plt.axhline(1.6, color='w')
+    plt.axhline(GRlim, color='w')
+    plt.axhline(BGlim, color='w')
+    plt.axvline(massmin_large, color='r')
     plt.show()
-
+    plt.savefig(envdir+"GV.png")
+    plt.close()
 
 
 def slice_z(catalog, z, dz):
@@ -131,12 +173,27 @@ def select_color(slice, BmRmin = -999, BmRmax = 999):
     slice = slice[np.where(slice["BmR"]<BmRmax)]
     return slice
 
-def get_densities(slice):
-    """Measures the density around each galaxy in the slice"""
+def slice_param(catalog, param, pmin, pmax):
+    """ select a slice in catalog from
+    whatever parameter from min to max"""
+    slice = catalog[np.where(catalog[param] < pmax)]
+    slice = slice[np.where(catalog[param] > pmin)]
+    return slice
+
+
+def get_densities(slice, large_slice):
+    """Measures the density for each galaxy in the slice
+    using a larger slice, because of borders effects from z
+    (RA Dec not taken in accounts) and also to include all masses
+    and not only the current mass bin"""
 
     radius = 5.*u.Mpc
 
     densities = np.array([])
+    meanmasses = np.array([])
+    medianmasses = np.array([])
+
+    print datetime.datetime.now()
 
     for galaxy in slice:
         z = galaxy["zb_1"]
@@ -147,14 +204,27 @@ def get_densities(slice):
         dRA = radius / Mpc_per_deg
         dDec = dRA
 
-        slicetmp = slice
+        slicetmp = large_slice
 
         slicetmp = slice_RA(slicetmp, RA, dRA)
         slicetmp = slice_Dec(slicetmp, Dec, dDec)
         slicetmp = slice_z_cosmo(slicetmp, z, radius)
-        densities = np.append(densities, len(slicetmp)-1)
 
-    slice = slice.add_column(Column(data=densities, name="densities"))
+        meanmass_comp = np.mean(slicetmp["Stell_Mass_1"][np.where(slicetmp["ID"] != galaxy["ID"])])
+        medianmass_comp = np.median(slicetmp["Stell_Mass_1"][np.where(slicetmp["ID"] != galaxy["ID"])])
+
+        densities = np.append(densities, len(slicetmp)-1)
+        meanmasses = np.append(meanmasses, meanmass_comp)
+        medianmasses = np.append(medianmasses, medianmass_comp)
+
+        #print len(slicetmp)-1
+
+    slice.add_column(Column(data=densities, name="densities"))
+    slice.add_column(Column(data=meanmasses, name="meanmasses"))
+    slice.add_column(Column(data=medianmasses, name="medianmasses"))
+
+    print datetime.datetime.now()
+
     return slice
 
 def slice_z_cosmo(slice, z, radius):
