@@ -22,6 +22,7 @@ from astropy import units as u
 from astropy.cosmology import z_at_value
 from astropy.io import ascii
 import datetime
+from astropy import constants as const
 
 def main():
     mastername = '/home/loic/Projects/alhambra/data/catalogs/' \
@@ -68,6 +69,9 @@ def plot_GV_zfixed(catalog):
 
     filterB = "F644W"
     filterR = "J"
+    envdir = "environment/"
+    if not os.path.exists(envdir):
+        os.mkdir(envdir)
 
     #####################
     # Slice to analyse: #
@@ -83,7 +87,8 @@ def plot_GV_zfixed(catalog):
 
     # selection in stellar mass:
     mass = 10.
-    dmass = 0.2
+    dmass = 0.05
+    #dmass = 0.2
 
     slicemass = slice_mass(slice, mass, dmass)
 
@@ -91,16 +96,33 @@ def plot_GV_zfixed(catalog):
     #####################
     #   Larger slice :  #
     #####################
-    larger_slice = slice_z(catalog, 0.8, 0.1)
+    larger_slice = slice_z(catalog, 0.8, 0.07)
     massmin_large = 8.4
-    larger_slice = slice_param(catalog, "Stell_Mass_1", massmin_large, 10000.)
+    larger_slice = slice_param(larger_slice, "Stell_Mass_1", massmin_large, 10000.)
+
+
+    #############
+    # GV plot   #
+    #############
+    #Red, Green, Blue limits:
+    BGlim = 1.6
+    GRlim = 1.9
+
+    plt.hist2d(slice["Stell_Mass_1"], slice['BmR'], bins=100)
+    plt.axvline(mass-dmass, color='w')
+    plt.axvline(mass+dmass, color='w')
+    plt.axhline(GRlim, color='w')
+    plt.axhline(BGlim, color='w')
+    plt.axvline(massmin_large, color='r')
+    plt.show()
+    plt.savefig("GV.png")
+    plt.close()
 
     #############
     # Densities #
     #############
-    envdir = "environment/"
-    if not os.path.exists(envdir):
-        os.mkdir(envdir)
+
+    print "i am using the comobile distance somewhere, I should check that is not right actually !"
 
     do_measurement = True
     if do_measurement:
@@ -114,10 +136,6 @@ def plot_GV_zfixed(catalog):
         densities = Table(np.load(envdir+"densities.npy"))
 
 
-
-    #Red, Green, Blue limits:
-    BGlim = 1.6
-    GRlim = 1.9
     red = select_color(densities, GRlim)
     green = select_color(densities, BGlim, GRlim)
     blue = select_color(densities, -999, BGlim)
@@ -141,15 +159,6 @@ def plot_GV_zfixed(catalog):
 
     sys.exit()
 
-    plt.hist2d(slice["Stell_Mass_1"], slice['BmR'], bins=100)
-    plt.axvline(mass-dmass, color='w')
-    plt.axvline(mass+dmass, color='w')
-    plt.axhline(GRlim, color='w')
-    plt.axhline(BGlim, color='w')
-    plt.axvline(massmin_large, color='r')
-    plt.show()
-    plt.savefig(envdir+"GV.png")
-    plt.close()
 
 
 def slice_z(catalog, z, dz):
@@ -187,7 +196,7 @@ def get_densities(slice, large_slice):
     (RA Dec not taken in accounts) and also to include all masses
     and not only the current mass bin"""
 
-    radius = 5.*u.Mpc
+    radius = .5*u.Mpc
 
     densities = np.array([])
     meanmasses = np.array([])
@@ -208,7 +217,12 @@ def get_densities(slice, large_slice):
 
         slicetmp = slice_RA(slicetmp, RA, dRA)
         slicetmp = slice_Dec(slicetmp, Dec, dDec)
-        slicetmp = slice_z_cosmo(slicetmp, z, radius)
+        #slicetmp = slice_z_cosmo(slicetmp, z, radius)
+        velocity_limit = 500 #km/s
+
+        #print zobs(-(velocity_limit), z) - zobs(velocity_limit, z)
+
+        slicetmp = slice_z_minmax(slicetmp, zobs(-(velocity_limit), z), zobs(velocity_limit, z))
 
         meanmass_comp = np.mean(slicetmp["Stell_Mass_1"][np.where(slicetmp["ID"] != galaxy["ID"])])
         medianmass_comp = np.median(slicetmp["Stell_Mass_1"][np.where(slicetmp["ID"] != galaxy["ID"])])
@@ -227,10 +241,27 @@ def get_densities(slice, large_slice):
 
     return slice
 
+def zobs(vpec,zcos):
+    # returns the z at wich a galaxy with a peculiar velocity + redshift is
+    # vpec = peculiar velocity in km/s
+    return (1+zcos) * vpec /(const.c.to('km/s')/u.km*u.s) + zcos
+
+
+def slice_z_minmax(slice, zmin, zmax):
+    """Slices in redshift between min and max"""
+    slice = slice[np.where(slice["zb_1"] < zmax)]
+    slice = slice[np.where(slice["zb_1"] > zmin)]
+    return slice
+
+
+
 def slice_z_cosmo(slice, z, radius):
     """Slices in redshift considering a distance to cut"""
     zmax = z_at_value(cosmo.comoving_distance, cosmo.comoving_distance(z) + radius)
     zmin = z_at_value(cosmo.comoving_distance, cosmo.comoving_distance(z) - radius)
+
+    print zmin - zmax
+
     slice = slice[np.where(slice["zb_1"] < zmax)]
     slice = slice[np.where(slice["zb_1"] > zmin)]
     return slice
